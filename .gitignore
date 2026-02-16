@@ -19,7 +19,7 @@ archive.zip
 *.zip
 *.pth
 *.pt
-predictions.csv
+
 .vscode/
 .idea/
 .DS_Store
