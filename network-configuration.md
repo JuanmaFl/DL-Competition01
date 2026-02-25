@@ -6,7 +6,7 @@ We use a fully connected Multi-Layer Perceptron (MLP) for grayscale landscape im
 
 - **Input tensor**: shape `[batch_size, 1, 150, 150]`
 - **Layer stack**:
-  1. `Flatten` (from \(1 \times 150 \times 150 = 22500\) pixels to a 22500‑dimensional vector)
+  1. `Flatten` (from **1 × 150 × 150 = 22500** pixels to a 22500-dimensional vector)
   2. `Linear(22500 → 1024)`  
      `BatchNorm1d(1024)`  
      `LeakyReLU(negative_slope=0.15)`  
