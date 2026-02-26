@@ -21,11 +21,13 @@ We use a fully connected Multi-Layer Perceptron (MLP) for grayscale landscape im
      `Dropout(p=0.3)`
   5. **Output layer**: `Linear(256 → 6)` (one logit per class)
 
-The final softmax is implicit in the loss function (`CrossEntropyLoss`), which operates on logits.
+The three-layer structure with decreasing width (1024 → 512 → 256) lets the model progressively compress the learned representation before making a final classification decision. The final softmax is implicit in the loss function (`CrossEntropyLoss`), which operates on logits.
 
 ---
 
 ## 2. Input Size and Preprocessing
+
+Images were converted to grayscale to reduce the input dimensionality from three channels (RGB) to a single channel. Since the MLP flattens the entire image into a single vector, keeping RGB would triple the input size, significantly increasing the number of parameters in the first linear layer. Reducing the dimensionality helps lower computational cost, decrease the risk of overfitting, and improve training stability.
 
 - **Input size**: single‑channel grayscale images of **150 × 150** pixels.
 
@@ -54,7 +56,7 @@ Pipeline:
 3. `ToTensor()`
 4. `Normalize(mean=[0.5], std=[0.5])`
 
-No data augmentation is used at evaluation time.
+No data augmentation is used at evaluation time. While augmentation was useful during training to improve generalization, it was important to keep the validation and competition preprocessing pipelines identical. All evaluation images go through the same deterministic transformations to avoid distribution mismatches and ensure that validation performance accurately reflects real competition performance.
 
 ---
 
@@ -91,7 +93,7 @@ No data augmentation is used at evaluation time.
 
 ## 5. Regularization Methods
 
-We apply several regularization techniques:
+We apply several regularization techniques, to prevent the model from overfitting:
 
 - **Data augmentation (training only)**:
   - Horizontal flips (`RandomHorizontalFlip(p=0.5)`)
@@ -126,8 +128,8 @@ We apply several regularization techniques:
 
 - **Validation/Test split**:
   - Starting from `data/seg_test`, we build two stratified subsets using `StratifiedShuffleSplit`:
-    - **Validation set**: 100 images.
-    - **Internal test set**: 100 images.
+    - **Validation set**: 100 images (used to monitor training and trigger early stopping)
+    - **Internal test set**: 100 images ( used only for final evaluation, never seen during training decisions)
   - Stratification guarantees that both subsets preserve the original class distribution.
 
 - **Selection criterion**:
@@ -142,4 +144,30 @@ We apply several regularization techniques:
 - **Final model**:
   - After training stops (due to max epochs or early stopping), we reload `best_model.pth`:
     model.load_state_dict(torch.load('best_model.pth', weights_only=True))
-    
+
+---
+
+**Declaration of AI Use**
+
+- Did you use AI tools (ChatGPT, Copilot, etc.)?
+  Yes, we used AI tools such as ChatGPT and Claude during the development of this project.
+
+- For what tasks?
+  We used AI tools mainly for:
+  - Helping with initial code structure
+  - Assisting with some code generation
+  - Clarifying implementation details
+  - Supporting early transformations and debugging
+
+- Which parts of the work are fully yours?
+  We were responsible for:
+  - Designing and structuring the neural network architecture
+  - Selecting and configuring the hyperparameters
+  - Implementing the final training process
+  - Running experiments and comparing different configurations
+  - Choosing the final model
+  - Evaluating performance and generating the final predictions
+
+- External Resources Used
+  We consulted the following academic material to better understand multilayer perceptrons and transformations:
+  https://www.cs.upc.edu/~bejar/apa/teoria/APA6a-MLP.pdf
