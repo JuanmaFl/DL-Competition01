@@ -1,5 +1,21 @@
 # Network Configuration Document  
 
+## Project Team  
+
+This project was developed by four team members:
+
+- Alejandro Sepulveda Posada  
+- Juan Manuel Flores  
+- Santiago Gomez  
+- Camila Martinez  
+
+Each team member contributed **25% of the work** to the project. All members participated in both:
+
+- The **implementation of the architecture**
+- The **writing of the technical report**
+
+---
+
 ## 1. Architecture Description  
 
 For this project, we implemented a fully connected **Multi-Layer Perceptron (MLP)** to classify grayscale landscape images into 6 categories.
