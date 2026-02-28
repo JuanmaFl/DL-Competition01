@@ -117,13 +117,10 @@ The final model corresponds to the highest validation accuracy achieved during t
 
 ## Results  
 
-| MODELS | ACCURACY | # EPOCH |
-|-----------|-----------|-----------|
-| 1 | 61 % | 75 |
-| 2 | 89 % (CNN) | 100 |
-| 3 | 58 % | 100 |
-| 4 | 62 % (final MLP model) | 75 |
+| MODELS | LAYERS                              | OPTIM METHOD              | LEARNING RATE | ACTIVATION FUNCTION        | REGULATION                                                                 | VAL. SPLIT                         | # EPOCH              | TRAIN ACCURACY | VAL. ACCURACY |
+|--------|--------------------------------------|---------------------------|---------------|----------------------------|---------------------------------------------------------------------------|------------------------------------|----------------------|----------------|----------------|
+| NB4    | 3 (1024 → 512 → 256 → 6)            | Adam                      | 0.0001        | ReLU                       | Dropout (0.3 / 0.4 / 0.3) <br> BatchNorm <br> weight_decay 1e-4        | 100 samples (stratified)           | 75                   | 61.70%         | 67.00%        |
+| NB1    | 3 (1024 → 512 → 256 → 6)            | Adam + ReduceLROnPlateau | 0.0005        | LeakyReLU (0.15 / 0.1)     | Dropout (0.3 / 0.4 / 0.3) <br> BatchNorm <br> LabelSmooth 0.05 <br> weight_decay 1e-4 | 100 samples (stratified) | 100 (best ep. 55) | 62.33%         | 64.00%        |
+| NB2    | 3 (1024 → 512 → 256 → 6)            | Adam + ReduceLROnPlateau | 0.0005        | LeakyReLU (0.1)            | Dropout (0.5 / 0.45 / 0.35) <br> BatchNorm <br> LabelSmooth 0.1 <br> weight_decay 1e-3 | 70% val / 30% test (stratified) | 100 (best ep. 91) | 58.11%         | 57.10%        |
+| NB3    | 4 (2048 → 1024 → 512 → 256 → 6)     | Adam + ReduceLROnPlateau | 0.0005        | LeakyReLU (0.1)            | Dropout (0.25 / 0.25 / 0.2 / 0.15) <br> BatchNorm <br> weight_decay 5e-5 | 70% val / 30% test (stratified) | 100 (best ep. 90) | 89.96%         | 60.05%        |
 
-The CNN-based model achieved 89%, which is consistent with convolutional architectures being better suited for capturing spatial structure in images.
-
-The final MLP reached 62%. While it can learn global patterns, it does not explicitly exploit local spatial relationships, which limits performance in this task.
