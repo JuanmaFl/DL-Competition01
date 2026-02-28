@@ -1,5 +1,7 @@
 # Network Configuration Document  
 
+Git: https://github.com/JuanmaFl/DL-Competition01
+
 ## Project Team  
 
 This project was developed by four team members:
@@ -140,6 +142,5 @@ The final model corresponds to the highest validation accuracy achieved during t
 | modelo3  | MLP | 4 | Adam | 0.0005 | 90 | LeakyReLU | BatchNorm + Dropout + L2 + scheduler + early stopping | Estratificado (test_size=0.3) | 88.79% | 62.56% |
 | modelo4  | CNN | 3 | Adam | 0.0001 | 75 | ReLU | BatchNorm + Dropout + L2 | Estratificado (2 muestras de 100) | 61.70% | 64.00% |
 
-La arquitectura del modelo1 es la que aparece en este folder. Las demás arquitecturas se encuentran en el repositorio, en diferentes ramas:
-https://github.com/JuanmaFl/DL-Competition01
+La arquitectura del modelo1 es la que aparece en este folder. Las demás arquitecturas se encuentran en el repositorio, en diferentes ramas.
 
