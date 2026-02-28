@@ -115,12 +115,12 @@ The final model corresponds to the highest validation accuracy achieved during t
 
 ---
 
-## Results  
+## Resultados de diferentes arquitecturas
 
-| MODELS | LAYERS                              | OPTIM METHOD              | LEARNING RATE | ACTIVATION FUNCTION        | REGULATION                                                                 | VAL. SPLIT                         | # EPOCH              | TRAIN ACCURACY | VAL. ACCURACY |
-|--------|--------------------------------------|---------------------------|---------------|----------------------------|---------------------------------------------------------------------------|------------------------------------|----------------------|----------------|----------------|
-| NB4    | 3 (1024 → 512 → 256 → 6)            | Adam                      | 0.0001        | ReLU                       | Dropout (0.3 / 0.4 / 0.3) <br> BatchNorm <br> weight_decay 1e-4        | 100 samples (stratified)           | 75                   | 61.70%         | 67.00%        |
-| NB1    | 3 (1024 → 512 → 256 → 6)            | Adam + ReduceLROnPlateau | 0.0005        | LeakyReLU (0.15 / 0.1)     | Dropout (0.3 / 0.4 / 0.3) <br> BatchNorm <br> LabelSmooth 0.05 <br> weight_decay 1e-4 | 100 samples (stratified) | 100 (best ep. 55) | 62.33%         | 64.00%        |
-| NB2    | 3 (1024 → 512 → 256 → 6)            | Adam + ReduceLROnPlateau | 0.0005        | LeakyReLU (0.1)            | Dropout (0.5 / 0.45 / 0.35) <br> BatchNorm <br> LabelSmooth 0.1 <br> weight_decay 1e-3 | 70% val / 30% test (stratified) | 100 (best ep. 91) | 58.11%         | 57.10%        |
-| NB3    | 4 (2048 → 1024 → 512 → 256 → 6)     | Adam + ReduceLROnPlateau | 0.0005        | LeakyReLU (0.1)            | Dropout (0.25 / 0.25 / 0.2 / 0.15) <br> BatchNorm <br> weight_decay 5e-5 | 70% val / 30% test (stratified) | 100 (best ep. 90) | 89.96%         | 60.05%        |
+| Archivo | Model Type | # Layers | Optim. Method | Learning Rate | # Epochs | Activation function | Regul. | Val. Split | Training Accuracy | Test Accuracy |
+|---|---|---:|---|---:|---:|---|---|---|---:|---:|
+| modelo1, rama 1 | MLP | 3 | Adam | 0.0005 | 55 | LeakyReLU | BatchNorm + Dropout + L2 + label smoothing + scheduler + early stopping | Estratificado (2 muestras de 100) | 59.33% | 64.00% |
+| modelo2, rama 2 | MLP | 3 | Adam | 0.0005 | 91 | LeakyReLU | BatchNorm + Dropout + L2 + label smoothing + scheduler + early stopping | Estratificado (test_size=0.3) | 56.32% | 58.89% |
+| modelo3, rama 3  | MLP | 4 | Adam | 0.0005 | 90 | LeakyReLU | BatchNorm + Dropout + L2 + scheduler + early stopping | Estratificado (test_size=0.3) | 88.79% | 62.56% |
+| modelo4, rama 4  | CNN | 3 | Adam | 0.0001 | 75 | ReLU | BatchNorm + Dropout + L2 | Estratificado (2 muestras de 100) | 61.70% | 64.00% |
 
