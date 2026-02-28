@@ -1,148 +1,129 @@
-# Network Configuration Document
+# Network Configuration Document  
 
-## 1. Architecture Description
+## 1. Architecture Description  
 
-We use a fully connected Multi-Layer Perceptron (MLP) for grayscale landscape image classification into 6 classes.
+For this project, we implemented a fully connected **Multi-Layer Perceptron (MLP)** to classify grayscale landscape images into 6 categories.
 
-- **Input tensor**: shape `[batch_size, 1, 150, 150]`
-- **Layer stack**:
-  1. `Flatten` (from **1 × 150 × 150 = 22500** pixels to a 22500-dimensional vector)
-  2. `Linear(22500 → 1024)`  
-     `BatchNorm1d(1024)`  
-     `LeakyReLU(negative_slope=0.15)`  
-     `Dropout(p=0.3)`
-  3. `Linear(1024 → 512)`  
-     `BatchNorm1d(512)`  
-     `LeakyReLU(negative_slope=0.1)`  
-     `Dropout(p=0.4)`
-  4. `Linear(512 → 256)`  
-     `BatchNorm1d(256)`  
-     `LeakyReLU(negative_slope=0.1)`  
-     `Dropout(p=0.3)`
-  5. **Output layer**: `Linear(256 → 6)` (one logit per class)
+The input tensor has shape `[batch_size, 1, 150, 150]`. Since the model is fully connected, the first step is to flatten the image. The **1 × 150 × 150 = 22500** pixels are converted into a vector of size 22500.
 
-The three-layer structure with decreasing width (1024 → 512 → 256) lets the model progressively compress the learned representation before making a final classification decision. The final softmax is implicit in the loss function (`CrossEntropyLoss`), which operates on logits.
+After flattening, the network consists of three linear layers with decreasing dimensionality:
 
----
+- 22500 → 1024  
+- 1024 → 512  
+- 512 → 256  
 
-## 2. Input Size and Preprocessing
+After each linear layer, we applied:
 
-Images were converted to grayscale to reduce the input dimensionality from three channels (RGB) to a single channel. Since the MLP flattens the entire image into a single vector, keeping RGB would triple the input size, significantly increasing the number of parameters in the first linear layer. Reducing the dimensionality helps lower computational cost, decrease the risk of overfitting, and improve training stability.
+- Batch Normalization  
+- LeakyReLU activation  
+- Dropout  
 
-- **Input size**: single‑channel grayscale images of **150 × 150** pixels.
+The final layer is `Linear(256 → 6)`, producing one logit per class. We did not include a softmax layer explicitly, since `CrossEntropyLoss` already applies it internally.
 
-### Training preprocessing (`train_transform`)
-
-Applied to images from `data/seg_train`:
-
-1. `Grayscale(num_output_channels=1)` – convert to 1‑channel grayscale.
-2. `Resize((150, 150))` – resize to fixed 150×150.
-3. `RandomHorizontalFlip(p=0.5)` – horizontal flip with probability 0.5.
-4. `RandomRotation(8)` – random rotation up to ±8 degrees.
-5. `ColorJitter(brightness=0.2)` – random brightness perturbation.
-6. `ToTensor()` – convert to PyTorch tensor, pixel values in \([0, 1]\).
-7. `Normalize(mean=[0.5], std=[0.5])` – normalize to roughly \([-1, 1]\).
-
-### Validation / Internal Test / Competition Test preprocessing (`test_transform`)
-
-Applied to:
-- Validation and internal test splits from `data/seg_test`.
-- Competition images from `data/seg_pred` (comp_test subset used in the notebook).
-
-Pipeline:
-
-1. `Grayscale(num_output_channels=1)`
-2. `Resize((150, 150))`
-3. `ToTensor()`
-4. `Normalize(mean=[0.5], std=[0.5])`
-
-No data augmentation is used at evaluation time. While augmentation was useful during training to improve generalization, it was important to keep the validation and competition preprocessing pipelines identical. All evaluation images go through the same deterministic transformations to avoid distribution mismatches and ensure that validation performance accurately reflects real competition performance.
+The progressive reduction in dimensionality (1024 → 512 → 256) compresses the learned representation before the final classification step.
 
 ---
 
-## 3. Loss Function
+## 2. Input Size and Preprocessing  
 
-- **Loss**: `nn.CrossEntropyLoss(label_smoothing=0.05)`
-  - Multiclass cross‑entropy over 6 classes.
-  - `label_smoothing=0.05` reduces over‑confidence by distributing a small portion of probability mass to non‑target classes.
+All images were converted to grayscale. This reduces the number of parameters in the first linear layer, which is the largest component of the network. Using RGB would have tripled the number of input features and increased both computational cost and overfitting risk.
 
----
+The final input size is **150 × 150 pixels, single channel**.
 
-## 4. Optimizer and Hyperparameters
+### Training preprocessing  
 
-- **Optimizer**: `torch.optim.Adam`
-  - **Learning rate**: `0.0005`
-  - **Weight decay**: `1e-4` (L2 regularization on weights)
+For the training set, we applied:
 
-- **Batch size**:
-  - Training, validation and internal test: `batch_size = 32`
-  - Competition test loader: `batch_size = 32` (inference only)
+- Grayscale conversion  
+- Resize to 150×150  
+- RandomHorizontalFlip (p=0.5)  
+- RandomRotation (±8 degrees)  
+- Brightness jitter (0.2)  
+- ToTensor  
+- Normalize(mean=[0.5], std=[0.5])  
 
-- **Number of epochs**:
-  - Maximum of `100` epochs.
-  - Effective number of epochs can be lower due to early stopping (see Regularization).
+The random transformations were applied only during training to increase variability and reduce overfitting.
 
-- **Scheduler (used)**:
-  - `torch.optim.lr_scheduler.ReduceLROnPlateau`
-    - `mode='max'` (monitors validation accuracy)
-    - `factor=0.5` (halves the learning rate when there is no improvement)
-    - `patience=7` epochs without improvement before reducing LR
-    - `min_lr=1e-6` (lower bound for the learning rate)
+### Validation and test preprocessing  
 
----
+For validation, internal test, and competition test sets, we applied:
 
-## 5. Regularization Methods
+- Grayscale  
+- Resize  
+- ToTensor  
+- Normalize  
 
-We apply several regularization techniques, to prevent the model from overfitting:
-
-- **Data augmentation (training only)**:
-  - Horizontal flips (`RandomHorizontalFlip(p=0.5)`)
-  - Small random rotations (`RandomRotation(8)`)
-  - Brightness perturbations (`ColorJitter(brightness=0.2)`)
-
-- **Dropout**:
-  - After first hidden layer: `Dropout(p=0.3)`
-  - After second hidden layer: `Dropout(p=0.4)`
-  - After third hidden layer: `Dropout(p=0.3)`
-
-- **Batch Normalization**:
-  - Applied after each hidden linear layer (1024, 512, 256 units) to stabilize training.
-
-- **Weight decay**:
-  - `weight_decay = 1e-4` in the Adam optimizer.
-
-- **Label smoothing**:
-  - `label_smoothing = 0.05` in `CrossEntropyLoss` to avoid overly confident predictions.
-
-- **Learning rate scheduling**:
-  - `ReduceLROnPlateau` lowers the learning rate when validation accuracy plateaus, acting as an additional regularization and convergence aid.
-
-- **Early stopping**:
-  - Training monitors validation accuracy.
-  - If validation accuracy does not improve for a fixed patience window, training is stopped early.
-  - The best model (highest validation accuracy) is saved to `best_model.pth` and reloaded after training.
+No data augmentation was used at evaluation time. All evaluation images go through the same deterministic preprocessing pipeline so that validation accuracy reflects inference behavior.
 
 ---
 
-## 6. Model Selection Strategy
+## 3. Loss Function  
 
-- **Validation/Test split**:
-  - Starting from `data/seg_test`, we build two stratified subsets using `StratifiedShuffleSplit`:
-    - **Validation set**: 100 images (used to monitor training and trigger early stopping)
-    - **Internal test set**: 100 images ( used only for final evaluation, never seen during training decisions)
-  - Stratification guarantees that both subsets preserve the original class distribution.
+We used `CrossEntropyLoss(label_smoothing=0.05)`.
 
-- **Selection criterion**:
-  - After each epoch, we compute validation accuracy on the validation set.
-  - We keep track of:
-    - `best_val_acc`: best validation accuracy observed so far.
-    - `best_epoch`: epoch where `best_val_acc` is achieved.
-  - Whenever validation accuracy improves:
-    - The model’s `state_dict` is saved to `best_model.pth`.
-    - The early‑stopping patience counter is reset.
-
-- **Final model**:
-  - After training stops (due to max epochs or early stopping), we reload `best_model.pth`:
-    model.load_state_dict(torch.load('best_model.pth', weights_only=True))
+This is a standard loss for multi-class classification. Label smoothing distributes a small portion of the probability mass across non-target classes, which reduces overconfident predictions and improves stability during training.
 
 ---
+
+## 4. Optimizer and Hyperparameters  
+
+- **Optimizer:** Adam  
+- **Initial learning rate:** 0.0005  
+- **Weight decay:** 1e-4  
+- **Batch size:** 32  
+- **Maximum epochs:** 100  
+
+We used `ReduceLROnPlateau`, monitoring validation accuracy. If accuracy does not improve for 7 epochs, the learning rate is reduced by a factor of 0.5. The minimum learning rate is set to 1e-6.
+
+This helps when training reaches a plateau.
+
+---
+
+## 5. Regularization  
+
+To control overfitting, we applied:
+
+- Data augmentation (training only)  
+- Dropout: 0.3, 0.4, and 0.3 in hidden layers  
+- Batch Normalization after each hidden layer  
+- Weight decay  
+- Label smoothing  
+- Learning rate scheduling  
+- Early stopping based on validation accuracy  
+
+Whenever validation accuracy improves, the model is saved to `best_model.pth`. If no improvement is observed within the patience window, training stops. At the end, the best-performing model is reloaded.
+
+---
+
+## 6. Model Selection Strategy  
+
+From `data/seg_test`, we created two subsets using `StratifiedShuffleSplit`:
+
+- **Validation set:** 100 images  
+- **Internal test set:** 100 images  
+
+Stratification preserves the original class distribution.
+
+After each epoch, validation accuracy is computed and tracked:
+
+- `best_val_acc`  
+- `best_epoch`  
+
+If accuracy improves, the model state is saved and the patience counter is reset.
+
+The final model corresponds to the highest validation accuracy achieved during training.
+
+---
+
+## Results  
+
+| MODELS | ACCURACY | # EPOCH |
+|-----------|-----------|-----------|
+| 1 | 61 % | 75 |
+| 2 | 89 % (CNN) | 100 |
+| 3 | 58 % | 100 |
+| 4 | 62 % (final MLP model) | 75 |
+
+The CNN-based model achieved 89%, which is consistent with convolutional architectures being better suited for capturing spatial structure in images.
+
+The final MLP reached 62%. While it can learn global patterns, it does not explicitly exploit local spatial relationships, which limits performance in this task.
