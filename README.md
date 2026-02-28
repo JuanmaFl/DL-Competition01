@@ -119,8 +119,11 @@ The final model corresponds to the highest validation accuracy achieved during t
 
 | Archivo | Model Type | # Layers | Optim. Method | Learning Rate | # Epochs | Activation function | Regul. | Val. Split | Training Accuracy | Test Accuracy |
 |---|---|---:|---|---:|---:|---|---|---|---:|---:|
-| modelo1, rama 1 | MLP | 3 | Adam | 0.0005 | 55 | LeakyReLU | BatchNorm + Dropout + L2 + label smoothing + scheduler + early stopping | Estratificado (2 muestras de 100) | 59.33% | 64.00% |
-| modelo2, rama 2 | MLP | 3 | Adam | 0.0005 | 91 | LeakyReLU | BatchNorm + Dropout + L2 + label smoothing + scheduler + early stopping | Estratificado (test_size=0.3) | 56.32% | 58.89% |
-| modelo3, rama 3  | MLP | 4 | Adam | 0.0005 | 90 | LeakyReLU | BatchNorm + Dropout + L2 + scheduler + early stopping | Estratificado (test_size=0.3) | 88.79% | 62.56% |
-| modelo4, rama 4  | CNN | 3 | Adam | 0.0001 | 75 | ReLU | BatchNorm + Dropout + L2 | Estratificado (2 muestras de 100) | 61.70% | 64.00% |
+| modelo1 | MLP | 3 | Adam | 0.0005 | 55 | LeakyReLU | BatchNorm + Dropout + L2 + label smoothing + scheduler + early stopping | Estratificado (2 muestras de 100) | 59.33% | 64.00% |
+| modelo2 | MLP | 3 | Adam | 0.0005 | 91 | LeakyReLU | BatchNorm + Dropout + L2 + label smoothing + scheduler + early stopping | Estratificado (test_size=0.3) | 56.32% | 58.89% |
+| modelo3  | MLP | 4 | Adam | 0.0005 | 90 | LeakyReLU | BatchNorm + Dropout + L2 + scheduler + early stopping | Estratificado (test_size=0.3) | 88.79% | 62.56% |
+| modelo4  | CNN | 3 | Adam | 0.0001 | 75 | ReLU | BatchNorm + Dropout + L2 | Estratificado (2 muestras de 100) | 61.70% | 64.00% |
+
+La arquitectura del modelo1 es la que aparece en este folder. Las demás arquitecturas se encuentran en el repositorio, en diferentes ramas:
+https://github.com/JuanmaFl/DL-Competition01
 
